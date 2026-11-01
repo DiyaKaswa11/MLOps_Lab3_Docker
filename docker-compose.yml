@@ -1,0 +1,29 @@
+services:
+  trainer:
+    build:
+      context: .
+      target: trainer
+    image: wine-trainer
+    environment:
+      N_ESTIMATORS: ${N_ESTIMATORS:-200}
+      LEARNING_RATE: ${LEARNING_RATE:-0.1}
+      MAX_DEPTH: ${MAX_DEPTH:-3}
+    volumes:
+      - model_artifacts:/app/artifacts
+
+  serving:
+    build:
+      context: .
+      target: serving
+    image: wine-serving
+    ports:
+      - "8000:8000"
+    volumes:
+      - model_artifacts:/app/artifacts
+    depends_on:
+      trainer:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  model_artifacts:
